@@ -88,10 +88,11 @@ struct ContentView: View {
         .sheet(isPresented: $showProfile) {
             ProfileView()
         }
-        .overlay(alignment: .bottom) {
-            // Floating Add Button
+        .overlay(alignment: .bottomTrailing) {
+            // Floating Add Button (right side, aligned with tab bar)
             addButton
-                .padding(.bottom, 60)
+                .padding(.trailing, 16)
+                .padding(.bottom, 90)
         }
     }
 
@@ -107,7 +108,7 @@ struct ContentView: View {
                 .frame(width: 56, height: 56)
                 .background(Color.appTint)
                 .clipShape(Circle())
-                .shadow(color: Color.appTint.opacity(0.4), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.appTint.opacity(0.3), radius: 10, x: 0, y: 5)
         }
     }
 }
