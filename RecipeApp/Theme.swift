@@ -2,6 +2,9 @@ import SwiftUI
 
 // MARK: - Color Extensions
 extension Color {
+    // App Tint - Sophisticated Burnt Orange
+    static let appTint = Color(hex: "F4845F")
+
     // Primary Colors
     static let primaryOrange = Color(hex: "FF6B35")
     static let secondaryGreen = Color(hex: "8BC34A")

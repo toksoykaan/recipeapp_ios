@@ -54,7 +54,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: AppIcon.profile)
                             .font(.system(size: 20, weight: .regular))
-                            .foregroundStyle(Color.primaryOrange)
+                            .foregroundStyle(Color.appTint)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -170,13 +170,7 @@ struct CustomTabBar: View {
             } label: {
                 Image(systemName: AppIcon.add)
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.primaryOrange, .secondaryGreen],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .foregroundStyle(Color.appTint)
                     .frame(width: 52, height: 52)
                     .background {
                         ZStack {
@@ -196,7 +190,7 @@ struct CustomTabBar: View {
                                     lineWidth: 0.5
                                 )
                         }
-                        .shadow(color: .primaryOrange.opacity(0.25), radius: 15, x: 0, y: 8)
+                        .shadow(color: Color.appTint.opacity(0.25), radius: 15, x: 0, y: 8)
                     }
             }
             .buttonStyle(AddButtonStyle())
@@ -216,7 +210,7 @@ struct TabBarButton: View {
 
     private var foregroundColor: Color {
         if isActive {
-            return .primaryOrange
+            return .appTint
         }
         return colorScheme == .dark ? Color.gray.opacity(0.8) : Color.gray
     }

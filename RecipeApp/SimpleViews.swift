@@ -2,21 +2,225 @@ import SwiftUI
 import SwiftData
 import Combine
 
-// MARK: - Placeholder Views (Replace with full versions later)
+// MARK: - Recipe Card View
+struct RecipeCardView: View {
+    let recipe: Recipe
+    @Environment(\.colorScheme) private var colorScheme
 
-struct HomeView: View {
+    private var cardBackground: Color {
+        Color(uiColor: .secondarySystemGroupedBackground)
+    }
+
     var body: some View {
-        VStack(spacing: 20) {
-            Text("🍳")
-                .font(.system(size: 100))
+        VStack(alignment: .leading, spacing: 0) {
+            // Image Section (4:3 Aspect Ratio)
+            recipeImage
+                .frame(height: 120)
+                .clipped()
 
-            Text("RecipeVault")
-                .font(.largeTitle.bold())
+            // Content Section
+            VStack(alignment: .leading, spacing: 8) {
+                // Title
+                Text(recipe.title)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
+                    .foregroundColor(.primary)
 
-            Text("Your recipes will appear here")
-                .foregroundColor(.secondary)
+                // Metadata Row
+                HStack(spacing: 12) {
+                    // Time
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.caption)
+                        Text(recipe.formattedPrepTime)
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+
+                    // Difficulty
+                    Text(recipe.difficulty.rawValue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(12)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .shadow(color: Color.black.opacity(0.08), radius: 5, x: 0, y: 2)
+    }
+
+    @ViewBuilder
+    private var recipeImage: some View {
+        if let imageData = recipe.imageData,
+           let uiImage = UIImage(data: imageData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(4/3, contentMode: .fill)
+        } else if !recipe.imageUrl.isEmpty {
+            AsyncImage(url: URL(string: recipe.imageUrl)) { phase in
+                switch phase {
+                case .empty:
+                    imagePlaceholder
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(4/3, contentMode: .fill)
+                case .failure:
+                    imagePlaceholder
+                @unknown default:
+                    imagePlaceholder
+                }
+            }
+        } else {
+            imagePlaceholder
+        }
+    }
+
+    private var imagePlaceholder: some View {
+        Rectangle()
+            .fill(Color(uiColor: .tertiarySystemGroupedBackground))
+            .overlay {
+                VStack(spacing: 8) {
+                    Image(systemName: "fork.knife")
+                        .font(.system(size: 28))
+                        .foregroundColor(.secondary.opacity(0.5))
+                }
+            }
+    }
+}
+
+// MARK: - Category Filter Pill
+struct CategoryPill: View {
+    let category: RecipeCategory
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(category.rawValue)
+                .font(.subheadline)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? Color.appTint : Color(uiColor: .tertiarySystemGroupedBackground))
+                )
+                .foregroundColor(isSelected ? .white : .primary)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Empty State View
+struct RecipesEmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "frying.pan")
+                .font(.system(size: 64))
+                .foregroundColor(.secondary.opacity(0.5))
+
+            Text("No recipes yet")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+
+            Text("Add your first recipe by tapping the + button")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(32)
+    }
+}
+
+// MARK: - Recipes View (Main Screen)
+struct HomeView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
+
+    @State private var selectedCategory: RecipeCategory = .all
+    @State private var searchText: String = ""
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
+
+    private var filteredRecipes: [Recipe] {
+        var result = recipes
+
+        // Filter by category
+        if selectedCategory != .all {
+            result = result.filter { $0.category == selectedCategory.rawValue }
+        }
+
+        // Filter by search text
+        if !searchText.isEmpty {
+            result = result.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+        }
+
+        return result
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Category Filter Bar
+                categoryFilterBar
+                    .padding(.top, 8)
+
+                // Content
+                if recipes.isEmpty {
+                    RecipesEmptyStateView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 80)
+                } else if filteredRecipes.isEmpty {
+                    // No results for filter/search
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 40))
+                            .foregroundColor(.secondary.opacity(0.5))
+                        Text("No recipes found")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 80)
+                } else {
+                    // Recipe Grid
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(filteredRecipes, id: \.id) { recipe in
+                            RecipeCardView(recipe: recipe)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
+                }
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search recipes")
+    }
+
+    private var categoryFilterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(RecipeCategory.allCases) { category in
+                    CategoryPill(
+                        category: category,
+                        isSelected: selectedCategory == category
+                    ) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedCategory = category
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+        }
     }
 }
 
