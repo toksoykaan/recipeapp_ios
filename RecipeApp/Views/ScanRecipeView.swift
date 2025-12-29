@@ -211,13 +211,14 @@ struct ScanRecipeView: View {
 
         let recipe = Recipe(
             title: parsedRecipe.title,
-            descriptionText: parsedRecipe.description,
+            summary: parsedRecipe.description,
             ingredients: ingredients,
             instructions: instructions,
             prepTimeMinutes: parsedRecipe.prepTimeMinutes,
             cookTimeMinutes: parsedRecipe.cookTimeMinutes,
             servings: parsedRecipe.servings,
             difficulty: parsedRecipe.difficulty,
+            category: parsedRecipe.categories.first ?? "Main Dish",
             categories: parsedRecipe.categories,
             cuisineTypes: parsedRecipe.cuisineTypes,
             dietaryInfo: parsedRecipe.dietaryInfo,

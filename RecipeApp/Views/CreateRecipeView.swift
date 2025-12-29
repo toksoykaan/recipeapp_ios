@@ -162,13 +162,14 @@ struct CreateRecipeView: View {
         // Create recipe
         let recipe = Recipe(
             title: title.trimmingCharacters(in: .whitespaces),
-            descriptionText: description.trimmingCharacters(in: .whitespaces),
+            summary: description.trimmingCharacters(in: .whitespaces),
             ingredients: recipeIngredients,
             instructions: recipeInstructions,
             prepTimeMinutes: prepTime,
             cookTimeMinutes: cookTime,
             servings: servings,
             difficulty: difficulty,
+            category: categories.first ?? "Main Dish",
             categories: categories,
             cuisineTypes: cuisineTypes
         )

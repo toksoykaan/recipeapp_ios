@@ -317,13 +317,14 @@ struct AIGenerateView: View {
 
         let recipe = Recipe(
             title: parsedRecipe.title,
-            descriptionText: parsedRecipe.description,
+            summary: parsedRecipe.description,
             ingredients: ingredients,
             instructions: instructions,
             prepTimeMinutes: parsedRecipe.prepTimeMinutes,
             cookTimeMinutes: parsedRecipe.cookTimeMinutes,
             servings: parsedRecipe.servings,
             difficulty: parsedRecipe.difficulty,
+            category: categories.first ?? "Main Dish",
             categories: categories,
             cuisineTypes: parsedRecipe.cuisineTypes,
             dietaryInfo: parsedRecipe.dietaryInfo,
