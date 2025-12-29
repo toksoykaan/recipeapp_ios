@@ -46,7 +46,7 @@ struct ContentView: View {
                     namespace: tabAnimation
                 )
                 .padding(.horizontal, 16)
-                .padding(.bottom, geometry.safeAreaInsets.bottom + 8)
+                .padding(.bottom, max(geometry.safeAreaInsets.bottom, 8))
             }
         }
         .ignoresSafeArea(.keyboard)
