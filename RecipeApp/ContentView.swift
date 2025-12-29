@@ -14,85 +14,82 @@ struct ContentView: View {
     @State private var selectedTab: Int = 0
     @State private var showProfile = false
     @State private var showAddRecipe = false
-    @State private var searchText = ""
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            // MARK: - Recipes Tab
-            NavigationStack {
-                HomeView()
-                    .navigationTitle("Recipes")
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                showProfile = true
-                            } label: {
-                                Image(systemName: "person.crop.circle")
-                                    .font(.system(size: 17))
-                                    .foregroundStyle(Color.appTint)
+        ZStack(alignment: .bottom) {
+            // Main Tab Content
+            TabView(selection: $selectedTab) {
+                // MARK: - Recipes Tab
+                NavigationStack {
+                    HomeView()
+                        .navigationTitle("Recipes")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                profileButton
                             }
                         }
-                    }
-            }
-            .tabItem {
-                Label("Recipes", systemImage: "book.fill")
-            }
-            .tag(0)
+                }
+                .tabItem {
+                    Label("Recipes", systemImage: "book.fill")
+                }
+                .tag(0)
 
-            // MARK: - Meal Plan Tab
-            NavigationStack {
-                MealPlanView()
-                    .navigationTitle("Meal Plan")
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                showProfile = true
-                            } label: {
-                                Image(systemName: "person.crop.circle")
-                                    .font(.system(size: 17))
-                                    .foregroundStyle(Color.appTint)
+                // MARK: - Meal Plan Tab
+                NavigationStack {
+                    MealPlanView()
+                        .navigationTitle("Meal Plan")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                profileButton
                             }
                         }
-                    }
-            }
-            .tabItem {
-                Label("Meal Plan", systemImage: "calendar")
-            }
-            .tag(1)
+                }
+                .tabItem {
+                    Label("Meal Plan", systemImage: "calendar")
+                }
+                .tag(1)
 
-            // MARK: - Grocery Tab
-            NavigationStack {
-                GroceryListView()
-                    .navigationTitle("Grocery")
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                showProfile = true
-                            } label: {
-                                Image(systemName: "person.crop.circle")
-                                    .font(.system(size: 17))
-                                    .foregroundStyle(Color.appTint)
+                // MARK: - Grocery Tab
+                NavigationStack {
+                    GroceryListView()
+                        .navigationTitle("Grocery")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                profileButton
                             }
                         }
-                    }
+                }
+                .tabItem {
+                    Label("Grocery", systemImage: "cart.fill")
+                }
+                .tag(2)
             }
-            .tabItem {
-                Label("Grocery", systemImage: "cart.fill")
+            .tint(Color.appTint)
+
+            // MARK: - FAB aligned with Tab Bar
+            HStack {
+                Spacer()
+                addButton
+                    .padding(.trailing, 16)
             }
-            .tag(2)
+            .padding(.bottom, 49) // iOS tab bar height
         }
-        .tint(Color.appTint)
         .sheet(isPresented: $showAddRecipe) {
             AddRecipeOptionsSheet()
         }
         .sheet(isPresented: $showProfile) {
             ProfileView()
         }
-        .overlay(alignment: .bottomTrailing) {
-            // Floating Add Button (right side, aligned with tab bar)
-            addButton
-                .padding(.trailing, 16)
-                .padding(.bottom, 90)
+    }
+
+    // MARK: - Profile Button
+    private var profileButton: some View {
+        Button {
+            showProfile = true
+        } label: {
+            Image(systemName: "person.crop.circle")
+                .font(.system(size: 17))
+                .foregroundStyle(Color.appTint)
         }
     }
 
@@ -105,10 +102,10 @@ struct ContentView: View {
             Image(systemName: "plus")
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 56, height: 56)
+                .frame(width: 52, height: 52)
                 .background(Color.appTint)
                 .clipShape(Circle())
-                .shadow(color: Color.appTint.opacity(0.3), radius: 10, x: 0, y: 5)
+                .shadow(color: Color.appTint.opacity(0.3), radius: 8, x: 0, y: 4)
         }
     }
 }
