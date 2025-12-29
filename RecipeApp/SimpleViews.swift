@@ -140,8 +140,8 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
 
+    @Binding var searchText: String
     @State private var selectedCategory: RecipeCategory = .all
-    @State private var searchText: String = ""
 
     private let columns = [
         GridItem(.flexible(), spacing: 16),
@@ -201,7 +201,6 @@ struct HomeView: View {
                 }
             }
         }
-        .searchable(text: $searchText, prompt: "Search recipes")
     }
 
     private var categoryFilterBar: some View {

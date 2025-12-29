@@ -33,19 +33,21 @@ struct ContentView: View {
     @Namespace private var tabAnimation
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Tab Content with NavigationStack
-            TabContentView(activeTab: activeTab, showProfile: $showProfile)
-                .padding(.bottom, 80)
+        GeometryReader { geometry in
+            ZStack(alignment: .bottom) {
+                // Tab Content with NavigationStack
+                TabContentView(activeTab: activeTab, showProfile: $showProfile)
+                    .padding(.bottom, 90)
 
-            // Custom Tab Bar with FAB
-            CustomTabBar(
-                activeTab: $activeTab,
-                showAddRecipe: $showAddRecipe,
-                namespace: tabAnimation
-            )
-            .padding(.horizontal, 16)
-            .padding(.bottom, 24)
+                // Custom Tab Bar with FAB
+                CustomTabBar(
+                    activeTab: $activeTab,
+                    showAddRecipe: $showAddRecipe,
+                    namespace: tabAnimation
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, geometry.safeAreaInsets.bottom + 8)
+            }
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showAddRecipe) {
@@ -61,14 +63,16 @@ struct ContentView: View {
 struct TabContentView: View {
     let activeTab: AppTab
     @Binding var showProfile: Bool
+    @State private var searchText: String = ""
 
     var body: some View {
         ZStack {
             switch activeTab {
             case .recipes:
                 NavigationStack {
-                    HomeView()
+                    HomeView(searchText: $searchText)
                         .navigationTitle("Recipes")
+                        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search recipes")
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 profileButton
