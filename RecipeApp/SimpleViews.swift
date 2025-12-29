@@ -118,9 +118,8 @@ struct CategoryPill: View {
 struct RecipesEmptyStateView: View {
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "frying.pan")
-                .font(.system(size: 64))
-                .foregroundColor(.secondary.opacity(0.5))
+            Text("🍳")
+                .font(.system(size: 100))
 
             Text("No recipes yet")
                 .font(.title3)
@@ -226,36 +225,42 @@ struct HomeView: View {
 
 struct MealPlanView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "calendar")
-                .font(.system(size: 80))
-                .foregroundColor(.primaryOrange)
+        VStack(spacing: 16) {
+            Text("📅")
+                .font(.system(size: 100))
 
             Text("Meal Planning")
-                .font(.title.bold())
-                .padding()
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
 
             Text("Plan your weekly meals here")
+                .font(.subheadline)
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
         }
+        .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 struct GroceryListView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "cart.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.secondaryGreen)
+        VStack(spacing: 16) {
+            Text("🛒")
+                .font(.system(size: 100))
 
             Text("Grocery List")
-                .font(.title.bold())
-                .padding()
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
 
             Text("Your shopping list will appear here")
+                .font(.subheadline)
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
         }
+        .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
