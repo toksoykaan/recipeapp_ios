@@ -8,18 +8,48 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - Main Content View (iOS 26 Liquid Glass Ready)
+// MARK: - Tab Enum
+enum AppTab: Int, CaseIterable {
+    case recipes = 0
+    case mealPlan = 1
+    case grocery = 2
+
+    var title: String {
+        switch self {
+        case .recipes: return "Recipes"
+        case .mealPlan: return "Meal Plan"
+        case .grocery: return "Grocery"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .recipes: return "book"
+        case .mealPlan: return "calendar"
+        case .grocery: return "cart"
+        }
+    }
+
+    var selectedIcon: String {
+        switch self {
+        case .recipes: return "book.fill"
+        case .mealPlan: return "calendar"
+        case .grocery: return "cart.fill"
+        }
+    }
+}
+
+// MARK: - Main Content View
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var selectedTab: Int = 0
+    @State private var selectedTab: AppTab = .recipes
     @State private var showProfile = false
     @State private var showAddRecipe = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Main Tab Content
+            // Tab Content
             TabView(selection: $selectedTab) {
-                // MARK: - Recipes Tab
                 NavigationStack {
                     HomeView()
                         .navigationTitle("Recipes")
@@ -29,12 +59,8 @@ struct ContentView: View {
                             }
                         }
                 }
-                .tabItem {
-                    Label("Recipes", systemImage: "book.fill")
-                }
-                .tag(0)
+                .tag(AppTab.recipes)
 
-                // MARK: - Meal Plan Tab
                 NavigationStack {
                     MealPlanView()
                         .navigationTitle("Meal Plan")
@@ -44,12 +70,8 @@ struct ContentView: View {
                             }
                         }
                 }
-                .tabItem {
-                    Label("Meal Plan", systemImage: "calendar")
-                }
-                .tag(1)
+                .tag(AppTab.mealPlan)
 
-                // MARK: - Grocery Tab
                 NavigationStack {
                     GroceryListView()
                         .navigationTitle("Grocery")
@@ -59,21 +81,16 @@ struct ContentView: View {
                             }
                         }
                 }
-                .tabItem {
-                    Label("Grocery", systemImage: "cart.fill")
-                }
-                .tag(2)
+                .tag(AppTab.grocery)
             }
-            .tint(Color.appTint)
+            .toolbar(.hidden, for: .tabBar)
 
-            // MARK: - FAB aligned with Tab Bar
-            HStack {
-                Spacer()
-                addButton
-                    .padding(.trailing, 16)
-            }
-            .padding(.bottom, 49) // iOS tab bar height
+            // Custom Tab Bar with FAB
+            customTabBar
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
         }
+        .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showAddRecipe) {
             AddRecipeOptionsSheet()
         }
@@ -93,7 +110,55 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Floating Add Button
+    // MARK: - Custom Tab Bar
+    private var customTabBar: some View {
+        HStack(spacing: 8) {
+            // Tab Items Container
+            HStack(spacing: 0) {
+                ForEach(AppTab.allCases, id: \.rawValue) { tab in
+                    tabButton(for: tab)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial)
+            .clipShape(Capsule())
+
+            // FAB - Same row, next to tab bar
+            addButton
+        }
+    }
+
+    // MARK: - Tab Button
+    private func tabButton(for tab: AppTab) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedTab = tab
+            }
+            HapticFeedback.light.generate()
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: selectedTab == tab ? tab.selectedIcon : tab.icon)
+                    .font(.system(size: 20))
+                    .fontWeight(selectedTab == tab ? .semibold : .regular)
+
+                Text(tab.title)
+                    .font(.system(size: 10, weight: .medium))
+            }
+            .foregroundStyle(selectedTab == tab ? Color.appTint : .secondary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background {
+                if selectedTab == tab {
+                    Capsule()
+                        .fill(Color.appTint.opacity(0.12))
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Add Button (FAB)
     private var addButton: some View {
         Button {
             HapticFeedback.medium.generate()
