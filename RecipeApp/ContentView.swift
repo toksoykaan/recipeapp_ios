@@ -48,42 +48,42 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Tab Content
-            TabView(selection: $selectedTab) {
-                NavigationStack {
-                    HomeView()
-                        .navigationTitle("Recipes")
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                profileButton
+            // Content based on selected tab
+            Group {
+                switch selectedTab {
+                case .recipes:
+                    NavigationStack {
+                        HomeView()
+                            .navigationTitle("Recipes")
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    profileButton
+                                }
                             }
-                        }
-                }
-                .tag(AppTab.recipes)
-
-                NavigationStack {
-                    MealPlanView()
-                        .navigationTitle("Meal Plan")
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                profileButton
+                    }
+                case .mealPlan:
+                    NavigationStack {
+                        MealPlanView()
+                            .navigationTitle("Meal Plan")
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    profileButton
+                                }
                             }
-                        }
-                }
-                .tag(AppTab.mealPlan)
-
-                NavigationStack {
-                    GroceryListView()
-                        .navigationTitle("Grocery")
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                profileButton
+                    }
+                case .grocery:
+                    NavigationStack {
+                        GroceryListView()
+                            .navigationTitle("Grocery")
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    profileButton
+                                }
                             }
-                        }
+                    }
                 }
-                .tag(AppTab.grocery)
             }
-            .toolbar(.hidden, for: .tabBar)
+            .padding(.bottom, 80) // Space for custom tab bar
 
             // Custom Tab Bar with FAB
             customTabBar
