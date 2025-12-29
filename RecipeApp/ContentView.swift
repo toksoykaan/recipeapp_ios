@@ -9,18 +9,10 @@ import SwiftUI
 import SwiftData
 
 // MARK: - Tab Enum
-enum AppTab: Int, CaseIterable {
-    case recipes = 0
-    case mealPlan = 1
-    case grocery = 2
-
-    var title: String {
-        switch self {
-        case .recipes: return "Recipes"
-        case .mealPlan: return "Meal Plan"
-        case .grocery: return "Grocery"
-        }
-    }
+enum AppTab: String, CaseIterable {
+    case recipes = "Recipes"
+    case mealPlan = "Meal Plan"
+    case grocery = "Grocery"
 
     var icon: String {
         switch self {
@@ -29,66 +21,31 @@ enum AppTab: Int, CaseIterable {
         case .grocery: return "cart"
         }
     }
-
-    var selectedIcon: String {
-        switch self {
-        case .recipes: return "book.fill"
-        case .mealPlan: return "calendar"
-        case .grocery: return "cart.fill"
-        }
-    }
 }
 
 // MARK: - Main Content View
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var selectedTab: AppTab = .recipes
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var activeTab: AppTab = .recipes
     @State private var showProfile = false
     @State private var showAddRecipe = false
+    @Namespace private var tabAnimation
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content based on selected tab
-            Group {
-                switch selectedTab {
-                case .recipes:
-                    NavigationStack {
-                        HomeView()
-                            .navigationTitle("Recipes")
-                            .toolbar {
-                                ToolbarItem(placement: .topBarTrailing) {
-                                    profileButton
-                                }
-                            }
-                    }
-                case .mealPlan:
-                    NavigationStack {
-                        MealPlanView()
-                            .navigationTitle("Meal Plan")
-                            .toolbar {
-                                ToolbarItem(placement: .topBarTrailing) {
-                                    profileButton
-                                }
-                            }
-                    }
-                case .grocery:
-                    NavigationStack {
-                        GroceryListView()
-                            .navigationTitle("Grocery")
-                            .toolbar {
-                                ToolbarItem(placement: .topBarTrailing) {
-                                    profileButton
-                                }
-                            }
-                    }
-                }
-            }
-            .padding(.bottom, 80) // Space for custom tab bar
+            // Tab Content with NavigationStack
+            TabContentView(activeTab: activeTab, showProfile: $showProfile)
+                .padding(.bottom, 80)
 
             // Custom Tab Bar with FAB
-            customTabBar
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+            CustomTabBar(
+                activeTab: $activeTab,
+                showAddRecipe: $showAddRecipe,
+                namespace: tabAnimation
+            )
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showAddRecipe) {
@@ -98,8 +55,56 @@ struct ContentView: View {
             ProfileView()
         }
     }
+}
 
-    // MARK: - Profile Button
+// MARK: - Tab Content View with Transitions
+struct TabContentView: View {
+    let activeTab: AppTab
+    @Binding var showProfile: Bool
+
+    var body: some View {
+        ZStack {
+            switch activeTab {
+            case .recipes:
+                NavigationStack {
+                    HomeView()
+                        .navigationTitle("Recipes")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                profileButton
+                            }
+                        }
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.98)))
+
+            case .mealPlan:
+                NavigationStack {
+                    MealPlanView()
+                        .navigationTitle("Meal Plan")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                profileButton
+                            }
+                        }
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.98)))
+
+            case .grocery:
+                NavigationStack {
+                    GroceryListView()
+                        .navigationTitle("Grocery")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                profileButton
+                            }
+                        }
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: activeTab)
+    }
+
     private var profileButton: some View {
         Button {
             showProfile = true
@@ -109,69 +114,132 @@ struct ContentView: View {
                 .foregroundStyle(Color.appTint)
         }
     }
+}
 
-    // MARK: - Custom Tab Bar
-    private var customTabBar: some View {
-        HStack(spacing: 8) {
-            // Tab Items Container
+// MARK: - Custom Tab Bar
+struct CustomTabBar: View {
+    @Binding var activeTab: AppTab
+    @Binding var showAddRecipe: Bool
+    var namespace: Namespace.ID
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Tab buttons with glass effect
             HStack(spacing: 0) {
                 ForEach(AppTab.allCases, id: \.rawValue) { tab in
-                    tabButton(for: tab)
+                    TabBarButton(tab: tab, isActive: activeTab == tab, namespace: namespace) {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            activeTab = tab
+                        }
+                        HapticFeedback.light.generate()
+                    }
+                    .frame(maxWidth: .infinity)
                 }
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 8)
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
+            .background {
+                ZStack {
+                    Capsule()
+                        .fill(.ultraThinMaterial)
 
-            // FAB - Same row, next to tab bar
-            addButton
+                    Capsule()
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(colorScheme == .dark ? 0.2 : 0.5),
+                                    Color.white.opacity(colorScheme == .dark ? 0.05 : 0.2)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 0.5
+                        )
+                }
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.15), radius: 20, x: 0, y: 10)
+            }
+
+            // Add Button (FAB)
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    showAddRecipe = true
+                }
+                HapticFeedback.medium.generate()
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(Color.appTint)
+                    .frame(width: 52, height: 52)
+                    .background {
+                        ZStack {
+                            Circle()
+                                .fill(.ultraThinMaterial)
+
+                            Circle()
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(colorScheme == .dark ? 0.2 : 0.5),
+                                            Color.white.opacity(colorScheme == .dark ? 0.05 : 0.2)
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 0.5
+                                )
+                        }
+                        .shadow(color: Color.appTint.opacity(0.25), radius: 15, x: 0, y: 8)
+                    }
+            }
+            .buttonStyle(ScaleButtonStyle())
         }
     }
+}
 
-    // MARK: - Tab Button
-    private func tabButton(for tab: AppTab) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedTab = tab
-            }
-            HapticFeedback.light.generate()
-        } label: {
+// MARK: - Tab Bar Button
+struct TabBarButton: View {
+    let tab: AppTab
+    let isActive: Bool
+    var namespace: Namespace.ID
+    let action: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        Button(action: action) {
             VStack(spacing: 4) {
-                Image(systemName: selectedTab == tab ? tab.selectedIcon : tab.icon)
-                    .font(.system(size: 20))
-                    .fontWeight(selectedTab == tab ? .semibold : .regular)
+                Image(systemName: tab.icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .symbolVariant(isActive ? .fill : .none)
+                    .symbolEffect(.bounce, value: isActive)
 
-                Text(tab.title)
-                    .font(.system(size: 10, weight: .medium))
+                Text(tab.rawValue)
+                    .font(.system(size: 10, weight: isActive ? .semibold : .medium))
+                    .lineLimit(1)
             }
-            .foregroundStyle(selectedTab == tab ? Color.appTint : .secondary)
+            .foregroundStyle(isActive ? Color.appTint : .secondary)
+            .frame(height: 48)
             .frame(maxWidth: .infinity)
-            .frame(height: 50)
             .background {
-                if selectedTab == tab {
+                if isActive {
                     Capsule()
-                        .fill(Color.appTint.opacity(0.12))
+                        .fill(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06))
+                        .matchedGeometryEffect(id: "activeTab", in: namespace)
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ScaleButtonStyle())
     }
+}
 
-    // MARK: - Add Button (FAB)
-    private var addButton: some View {
-        Button {
-            HapticFeedback.medium.generate()
-            showAddRecipe = true
-        } label: {
-            Image(systemName: "plus")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 52, height: 52)
-                .background(Color.appTint)
-                .clipShape(Circle())
-                .shadow(color: Color.appTint.opacity(0.3), radius: 8, x: 0, y: 4)
-        }
+// MARK: - Scale Button Style
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
