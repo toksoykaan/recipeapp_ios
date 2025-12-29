@@ -32,22 +32,28 @@ struct ContentView: View {
     @State private var showAddRecipe = false
     @Namespace private var tabAnimation
 
+    // iOS HIG Standards
+    private let tabBarContentHeight: CGFloat = 68 // Custom floating tab bar height
+
     var body: some View {
         GeometryReader { geometry in
+            let bottomInset = geometry.safeAreaInsets.bottom // 34pt on Face ID devices, 0 on home button devices
+
             ZStack(alignment: .bottom) {
                 // Tab Content with NavigationStack
                 TabContentView(activeTab: activeTab, showProfile: $showProfile)
-                    .padding(.bottom, 90)
+                    .padding(.bottom, tabBarContentHeight + 16) // Space for floating tab bar
 
-                // Custom Tab Bar with FAB
+                // Custom Tab Bar with FAB - floating above safe area
                 CustomTabBar(
                     activeTab: $activeTab,
                     showAddRecipe: $showAddRecipe,
                     namespace: tabAnimation
                 )
                 .padding(.horizontal, 16)
-                .padding(.bottom, max(geometry.safeAreaInsets.bottom, 8))
+                .padding(.bottom, bottomInset > 0 ? bottomInset : 16) // Respect home indicator or add padding
             }
+            .ignoresSafeArea(edges: .bottom)
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showAddRecipe) {
